@@ -1,6 +1,6 @@
-import React from "react";
-import { useForm } from "react-hook-form";
-import { useFieldArray } from "react-hook-form";
+import React, { useEffect } from "react";
+import { FieldError, useForm } from "react-hook-form";
+import { useFieldArray, FieldErrors } from "react-hook-form";
 
 const YouTubeForm = () => {
   type FormValues = {
@@ -15,6 +15,9 @@ const YouTubeForm = () => {
     phNumbers: {
       number: string; //array of object (because useFieldArray only works on  object value)
     }[];
+
+    userAge: number;
+    dob: Date;
   };
   const form = useForm<FormValues>({
     defaultValues: {
@@ -31,10 +34,14 @@ const YouTubeForm = () => {
           number: "",
         },
       ],
+      userAge: 0,
+      dob: new Date(),
     },
   });
-  const { register, control, handleSubmit, formState } = form;
-  const { errors } = formState;
+  const { register, control, handleSubmit, formState, getValues, reset } = form;
+  const { errors, isDirty, isValid, isSubmitSuccessful } = formState;
+
+  console.log(isDirty, isValid)
 
   const { fields, append, remove } = useFieldArray({
     name: "phNumbers",
@@ -44,9 +51,20 @@ const YouTubeForm = () => {
   const onSubmit = (data: FormValues) => {
     console.log("data submitted", data);
   };
+  const handleGetValues = ()=>{
+    console.log('Get Values', getValues())
+  }
+  const onError = (errors:FieldErrors<FormValues>)=>{
+console.log("Form errors", errors)
+  }
+  useEffect(()=>{
+if(isSubmitSuccessful){
+  reset()
+}
+  },[isSubmitSuccessful])
   return (
     <div>
-      <form onSubmit={handleSubmit(onSubmit)} noValidate>
+      <form onSubmit={handleSubmit(onSubmit, onError)} noValidate>
         <label htmlFor="username">Username</label>
         <input
           type="text"
@@ -64,7 +82,10 @@ const YouTubeForm = () => {
         <input
           type="text"
           id="usertwitter"
-          {...register("social.userTwitter")}
+          {...register("social.userTwitter",{
+            disabled:true ,// value of the field get undefined and validation is also get undefined
+            required:"Enter twitter profile"
+          })}
         />
 
         <label htmlFor="userFacebook">UserFacebook</label>
@@ -132,7 +153,41 @@ const YouTubeForm = () => {
             </button>
           </div>
         </div>
-        <button>Submit</button>
+
+        <div>
+          <label htmlFor="age">Age:</label>
+          <input
+            type="number"
+            id="age"
+            {...register("userAge", {
+              valueAsNumber: true,
+              required: {
+                value: true,
+                message: "must add valid age",
+              },
+            })}
+          />
+        </div>
+        <p className="errors">{errors.userAge?.message}</p>
+
+        <div>
+          <label htmlFor="dob">Date of Birth</label>
+          <input
+            type="date"
+            id="dob"
+            {...register("dob", {
+              valueAsDate: true,
+              required: {
+                value: true,
+                message: "dob is required",
+              },
+            })}
+          />
+          <p>{errors.dob?.message}</p>
+        </div>
+        <button disabled={!isDirty || !isValid}>Submit</button>
+        <button disabled={!isDirty || !isValid}>Submit</button>
+        <button type="button" onClick={()=>reset()}>Reset</button>
       </form>
     </div>
   );
