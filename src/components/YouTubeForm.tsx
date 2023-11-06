@@ -1,6 +1,7 @@
 import React, { useEffect } from "react";
 import { FieldError, useForm } from "react-hook-form";
 import { useFieldArray, FieldErrors } from "react-hook-form";
+import { Schema } from "yup";
 
 const YouTubeForm = () => {
   type FormValues = {
